@@ -11,8 +11,23 @@ import (
 	"scooter/users/internal/processors"
 )
 
+var DB *gorm.DB
+
+func InitDB(dataSourceName string) error {
+    var err error
+
+    DB, err = gorm.Open(postgres.Open(dataSourceName), &gorm.Config{})
+    if err != nil {
+        return err
+    }
+
+	DB.AutoMigrate(&User{})
+
+    return nil
+}
+
+
 type User struct {
-	gorm.Model
 	ID          uint `gorm:"unique;not null" json:"id"`
 	Nome        *string `gorm:"not null" json:"nome"`
 	CPF         *string `gorm:"unique;not null" json:"cpf"`
@@ -36,22 +51,12 @@ type User struct {
     if u.Celular == nil {
         return fmt.Errorf("field 'celular' cannot be empty")
     }
-    return nil
-}
 
-
-var DB *gorm.DB
-
-func InitDB(dataSourceName string) error {
-    var err error
-
-    DB, err = gorm.Open(postgres.Open(dataSourceName), &gorm.Config{})
-    if err != nil {
-        return err
+	userExists := User{}
+	if err := DB.Where("cpf = ?", u.CPF).First(&userExists).Error; err == nil {
+        // A user with the same CPF already exists, respond with an error
+        return fmt.Errorf("A user with this CPF already exists")
     }
-
-	DB.AutoMigrate(&User{})
-
     return nil
 }
 
