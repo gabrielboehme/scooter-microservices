@@ -10,8 +10,6 @@ import (
 	"scooter/users/internal/model"
 )
 
-func UpdateUser(w http.ResponseWriter, r *http.Request) {}
-func DeleteUser(w http.ResponseWriter, r *http.Request) {}
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
 
@@ -52,4 +50,48 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	processors.RespondJSON(w, http.StatusCreated, user)
+}
+
+func UpdateUser(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	cpf := vars["cpf"]
+	user := model.GetUserOr404(cpf, w, r)
+	if user == nil {
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&user); err != nil {
+		processors.RespondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	defer r.Body.Close()
+
+	if err := user.ValidateUser(); err != nil {
+		processors.RespondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := model.DB.Save(&user).Error; err != nil {
+		processors.RespondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	processors.RespondJSON(w, http.StatusOK, user)
+}
+
+func DeleteUser(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	cpf := vars["cpf"]
+	user := model.GetUserOr404(cpf, w, r)
+	if user == nil {
+		return
+	}
+
+	if err := model.DB.Delete(&user).Error; err != nil {
+		processors.RespondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	processors.RespondJSON(w, http.StatusNoContent, nil)
 }
