@@ -9,6 +9,7 @@ services:
       - DB_NAME=scooterdb
       - DB_SSL=disable
       - APP_PORT=8000
+      - DEPLOYMENT=PROD
     build:
       context: ./gateway          # Use the current directory as the build context
       dockerfile: Dockerfile  # Dockerfile for building the Go application
@@ -30,6 +31,7 @@ services:
       - DB_NAME=scooterdb
       - DB_SSL=disable
       - APP_PORT=8000
+      - DEPLOYMENT=PROD
     build:
       context: ./services/users          # Use the current directory as the build context
       dockerfile: Dockerfile  # Dockerfile for building the Go application
@@ -47,6 +49,7 @@ services:
       - DB_NAME=scooterdb
       - DB_SSL=disable
       - APP_PORT=8000
+      - DEPLOYMENT=PROD
     build:
       context: ./services/scooter          # Use the current directory as the build context
       dockerfile: Dockerfile  # Dockerfile for building the Go application
@@ -55,6 +58,24 @@ services:
     depends_on:
       - scooterdb
 
+  rents-app:
+      environment:
+        - DB_HOST=scooterdb
+        - DB_PORT=5432
+        - DB_USER=admin
+        - DB_PWD=scooteradmin
+        - DB_NAME=scooterdb
+        - DB_SSL=disable
+        - APP_PORT=8000
+        - DEPLOYMENT=PROD
+      build:
+        context: ./services/rents          # Use the current directory as the build context
+        dockerfile: Dockerfile  # Dockerfile for building the Go application
+      networks:
+        - scooter-net
+      depends_on:
+        - scooterdb
+    
   scooterdb:
     image: postgres:latest
     environment:
