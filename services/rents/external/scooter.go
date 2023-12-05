@@ -18,8 +18,6 @@ type Scooter struct {
 	SerialNumber  *string `json:"serial_number"`
 	Status        *string `json:"status"`
 	State         *string `json:"state"`
-	Latitude      *string `json:"latitude"`
-	Longitude     *string `json:"longitude"`
 }
 
 func GetScooterOr404(scooterSerialNumber string, w http.ResponseWriter, r *http.Request) *Scooter {
@@ -30,35 +28,21 @@ func GetScooterOr404(scooterSerialNumber string, w http.ResponseWriter, r *http.
 		fmt.Println("Error: ", err)
 		return nil
 	}
-	fmt.Println("Status Code:", resp.Status)
 
-	// Read and print the response body
-	responseBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		// Handle the error
-		fmt.Println("Error reading response body:", err)
-		return nil
-	}
-	fmt.Println("Response Body:", responseBody)
-	var scooter Scooter
-
+	// Create a Scooter object from response
+	scooter := Scooter{}
 	decoder := json.NewDecoder(resp.Body)
 	if err := decoder.Decode(&scooter); err != nil {
-		fmt.Println("Error 1")
+		fmt.Println("Error: ", err.Error())
 		processors.RespondError(w, http.StatusBadRequest,
 			fmt.Sprintf("Scooter not found with serial number %s", scooterSerialNumber),
 		)
 		return nil
 	}
 	
-    if err != nil {
-		processors.RespondError(w, http.StatusBadRequest, "Internal server error")
-        return nil
-    }
     defer resp.Body.Close()
 	
     if resp.StatusCode != http.StatusOK {
-		fmt.Println("Error 2")
 		processors.RespondError(w, http.StatusBadRequest,
 			fmt.Sprintf("Scooter not found with serial number %s", scooterSerialNumber),
 		)
@@ -68,7 +52,7 @@ func GetScooterOr404(scooterSerialNumber string, w http.ResponseWriter, r *http.
 }
 
 func UpdateScooterStatus(scooterSerialNumber string, status string) error {
-	scooterEP := scooterServiceUrl + "/" + scooterSerialNumber + "/location"
+	scooterEP := scooterServiceUrl + "/" + scooterSerialNumber
 	requestBody := []byte(`{"status": "` + status + `"}`)
 
 	req, err := http.NewRequest("PATCH", scooterEP, bytes.NewBuffer(requestBody))
