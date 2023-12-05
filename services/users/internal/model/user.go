@@ -38,7 +38,7 @@ type User struct {
   }
 
 
-  func (u *User) ValidateUser() error {
+func (u *User) ValidateUser() error {
     if u.Nome == nil {
         return fmt.Errorf("field 'nome' cannot be empty")
     }
@@ -51,8 +51,23 @@ type User struct {
     if u.Celular == nil {
         return fmt.Errorf("field 'celular' cannot be empty")
     }
+    return nil
+}
 
-	userExists := User{}
+func (u *User) UpdateUser(userUpdated *UserUpdate) {
+    if userUpdated.Nome != nil {
+        u.Nome = userUpdated.Nome
+    }
+    if userUpdated.Email != nil {
+        u.Email = userUpdated.Email
+    }
+    if userUpdated.Celular != nil {
+        u.Celular = userUpdated.Celular
+    }
+}
+
+func (u *User) RaiseOnUserExists() error {
+    userExists := User{}
 	if err := DB.Where("cpf = ?", u.CPF).First(&userExists).Error; err == nil {
         // A user with the same CPF already exists, respond with an error
         return fmt.Errorf("A user with this CPF already exists")

@@ -43,6 +43,11 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		processors.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	
+	if err := user.RaiseOnUserExists(); err != nil {
+		processors.RespondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	if err := model.DB.Create(&user).Error; err != nil {
 		processors.RespondError(w, http.StatusInternalServerError, "internal server error")
@@ -61,18 +66,18 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&user); err != nil {
-		processors.RespondError(w, http.StatusBadRequest, err.Error())
-		return
-	}
+	// Create a custom JSON decoder for the request body
+    decoder := model.NewUserUpdateDecoder(r.Body)
+
+    // Use the custom decoder to update the user struct
+	var userUpdated model.UserUpdate
+    if err := decoder.Decode(&userUpdated); err != nil {
+        processors.RespondError(w, http.StatusBadRequest, err.Error())
+        return
+    }
 	defer r.Body.Close()
 
-	if err := user.ValidateUser(); err != nil {
-		processors.RespondError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
+	user.UpdateUser(&userUpdated)
 	if err := model.DB.Save(&user).Error; err != nil {
 		processors.RespondError(w, http.StatusInternalServerError, err.Error())
 		return

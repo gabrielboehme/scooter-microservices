@@ -1,44 +1,27 @@
 package model
 
 import (
-	// "fmt"
-	"encoding/json"
+    "encoding/json"
+    "io"
 )
 
-type UserSerializer struct {
-    User
+type UserUpdateDecoder struct {
+    Decoder *json.Decoder
 }
 
-type UserManySerializer struct {
-	Users []SafeUser `json:"users"`
+type UserUpdate struct {
+    Nome        *string `json:"nome"`
+	Email       *string `json:"email"`
+	Celular 	*string `json:"celular"`
 }
 
-type SafeUser struct {
-	Nome      string `json:"nome"`
-	Email     string `json:"email"`
-	Celular string `json:"celular"`
+func NewUserUpdateDecoder(r io.Reader) *UserUpdateDecoder {
+    return &UserUpdateDecoder{Decoder: json.NewDecoder(r)}
 }
 
-
-func NewUserSerializer(users []User) UserManySerializer {
-    safeUsers := make([]SafeUser, len(users))
-    for i, u := range users {
-        safeUsers[i] = SafeUser{
-            Nome:      *u.Nome,
-            Email:     *u.Email,
-            Celular: *u.Celular,
-        }
+func (d *UserUpdateDecoder) Decode(userUpdated *UserUpdate) error {
+    if err := d.Decoder.Decode(userUpdated); err != nil {
+        return err
     }
-    return UserManySerializer{Users: safeUsers}
-}
-
-func (s UserSerializer) MarshalJSON() ([]byte, error) {
-    safeUser := SafeUser{
-        Nome:      *s.User.Nome,
-        Email:     *s.User.Email,
-        Celular:   *s.User.Celular,
-    }
-
-    // Marshal the SafeUser to JSON
-    return json.Marshal(safeUser)
+    return nil
 }
