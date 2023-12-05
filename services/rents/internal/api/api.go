@@ -21,7 +21,9 @@ func StartScooterRent(w http.ResponseWriter, r *http.Request) {
 		processors.RespondError(w, http.StatusInternalServerError, "Internal server error")
 		return
 	}
-
+	if err := external.LockScooterOr404(scooterSerialNumber, w, r); err != nil {
+		return
+	}
 	if err := external.UpdateScooterStatus(scooterSerialNumber, "IN_USE"); err != nil {
 		processors.RespondError(w, http.StatusBadRequest, err.Error())
 		return
@@ -31,6 +33,8 @@ func StartScooterRent(w http.ResponseWriter, r *http.Request) {
 		ScooterSerialNumber: &scooterSerialNumber,
 		RentStart: &currentTime,
 	}
+
+
 	if err := model.DB.Create(&rent).Error; err != nil {
 		processors.RespondError(w, http.StatusInternalServerError, "Internal server error")
 		return
@@ -42,11 +46,16 @@ func FinishScooterRent(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	scooterSerialNumber := vars["scooter"]
 	rent := model.GetInUseRentOr404(scooterSerialNumber, w, r)
+	
+	if err := external.UnlockScooterOr404(scooterSerialNumber, w, r); err != nil {
+		return
+	}
 
 	if err := external.UpdateScooterStatus(scooterSerialNumber, "AVAILABLE"); err != nil {
 		processors.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	
 
 	currentTime := time.Now()
 	rent.RentFinish = &currentTime

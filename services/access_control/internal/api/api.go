@@ -25,7 +25,7 @@ func LockScooter(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("\nScooter LOCKED")
 		return
 	}
-	processors.RespondError(w, http.StatusBadRequest, "Scooter must be available to lock it.")
+	processors.RespondError(w, http.StatusBadRequest, "\nScooter must be available to lock it.")
 }
 
 func UnlockScooter(w http.ResponseWriter, r *http.Request) {
@@ -43,5 +43,5 @@ func UnlockScooter(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("\nScooter UNLOCKED")
 		return
 	}
-	processors.RespondError(w, http.StatusBadRequest, "Scooter must be in use to lock it.")
+	processors.RespondError(w, http.StatusBadRequest, "\nScooter must be in use to lock it.")
 }
