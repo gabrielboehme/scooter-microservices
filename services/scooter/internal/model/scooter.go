@@ -101,7 +101,23 @@ func (s *Scooter) ValidateScooterStatus() bool {
     )
 }
 
-func (s *Scooter) ValidateLocationChange(newLocation *Location) error {
+func (s *Scooter) UpdateScooter(scooterUpdated *ScooterUpdate) error {
+    if scooterUpdated.Status != nil &&
+    util.StringInSlice(*scooterUpdated.Status, ScooterStatus) {
+        s.Status = scooterUpdated.Status
+    } else {
+        return fmt.Errorf("Status must be one of %s", ScooterStatus)
+    }
+    if scooterUpdated.State != nil &&
+    util.StringInSlice(*scooterUpdated.State, ScooterStates) {
+        s.State = scooterUpdated.State
+    } else {
+        return fmt.Errorf("Status must be one of %s", ScooterStates)
+    }
+    return nil
+}
+
+func (s *Scooter) ValidateLocationChange(newLocation *LocationUpdate) error {
 
     if newLocation.Latitude == nil || newLocation.Longitude == nil {
         return errors.New("Both latitude and longitude must be provided")
@@ -114,6 +130,14 @@ func (s *Scooter) ValidateLocationChange(newLocation *Location) error {
 
     if *newLocation.Longitude < -180 || *newLocation.Longitude > 180 {
         return errors.New("Longitude is out of bounds")
+    }
+
+    // Calculate the distance between the new location and the scooter's current location using the Haversine formula.
+    distance := util.DistanceTwoLocations(*s.Latitude, *s.Longitude, *newLocation.Latitude, *newLocation.Longitude)
+
+    // Compare the distance to 5km.
+    if distance > 5 {
+        return errors.New("The new location is more than 5km away from the scooter's current location")
     }
 
     s.Latitude = newLocation.Latitude

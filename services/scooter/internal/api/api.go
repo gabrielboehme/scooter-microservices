@@ -47,6 +47,40 @@ func CreateScooter(w http.ResponseWriter, r *http.Request) {
 	processors.RespondJSON(w, http.StatusCreated, scooter)
 }
 
+func UpdateScooter(w http.ResponseWriter, r *http.Request) {
+	// Updates Scooter Fields:
+	// Status
+	// State 
+	vars := mux.Vars(r)
+	serialNumber := vars["serial_number"]
+	scooter := model.GetScooterOr404(serialNumber, w, r)
+	if scooter == nil {
+		return
+	}
+
+	var scooterUpdated model.ScooterUpdate
+	decoder := model.NewScooterUpdateDecoder(r.Body)
+    if err := decoder.Decode(&scooterUpdated); err != nil {
+        processors.RespondError(w, http.StatusBadRequest, err.Error())
+        return
+    }
+	defer r.Body.Close()
+
+	// Tries to update scooter
+	if err := scooter.UpdateScooter(&scooterUpdated); err != nil {
+		processors.RespondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := model.DB.Save(&scooter).Error; err != nil {
+		processors.RespondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	processors.RespondJSON(w, http.StatusOK, scooter)
+
+
+}
+
 func GetLocation(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -63,41 +97,25 @@ func GetLocation(w http.ResponseWriter, r *http.Request) {
 
 func UpdateLocation(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-
-	latitude := vars["latitude"]
-	longitude := vars["logitude"]
 	serialNumber := vars["serial_number"]
 	scooter := model.GetScooterOr404(serialNumber, w, r)
 	if scooter == nil {
 		return
 	}
 
-	lat, err := strconv.ParseFloat(latitude, 64)
-    if err != nil {
-        processors.RespondError(w, http.StatusBadRequest, "Invalid latitude")
-        return
-    }
-	lon, err := strconv.ParseFloat(longitude, 64)
-    if err != nil {
-        processors.RespondError(w, http.StatusBadRequest, "Invalid longitude")
-        return
-    }
-
-	newLocation := model.Location{
-		Latitude: &lat,
-		Longitude: &lon,
-	}
-    decoder := json.NewDecoder(r.Body)
-    if err := decoder.Decode(&newLocation); err != nil {
+	var locationUpdated model.LocationUpdate
+    decoder := model.NewLocationUpdateDecoder(r.Body)
+    if err := decoder.Decode(&locationUpdated); err != nil {
         processors.RespondError(w, http.StatusBadRequest, err.Error())
         return
     }
     defer r.Body.Close()
 
-	if err := scooter.ValidateLocationChange(&newLocation); err != nil {
-        processors.RespondError(w, http.StatusBadRequest, err.Error())
-        return
-    }
+	// Tries to update scooter
+	if err := scooter.ValidateLocationChange(&locationUpdated); err != nil {
+		processors.RespondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	if err := model.DB.Save(&scooter).Error; err != nil {
         processors.RespondError(w, http.StatusInternalServerError, err.Error())
