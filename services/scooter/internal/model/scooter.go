@@ -30,26 +30,26 @@ func InitDB(dataSourceName string) error {
 }
 
 type Scooter struct {
-    ID               *uint `gorm:"unique;not null" json:"id"`
+    ID               *uuid.UUID `gorm:"unique;not null;default:gen_random_uuid()" json:"id"`
     SerialNumber     *uuid.UUID `gorm:"type:uuid;primaryKey; uniqueIndex; not null; default:gen_random_uuid()" json:"serial_number"`
     Latitude         *float64 `json:"latitude"`
     Longitude        *float64 `json:"longitude"`
     Status           *string  `json:"status"`
-	CreatedAt   *time.Time `json:"created_at"`
-  	UpdatedAt   *time.Time `json:"updated_at"`
+    State            *string `json:"state"`
+	CreatedAt        *time.Time `json:"created_at"`
+    UpdatedAt        *time.Time `json:"updated_at"`
 }
+var ScooterStatus = []string{"AVAILABLE", "IN_USE"}
+var ScooterStates = []string{"ON", "OFF"}
 
 type Location struct {
     Latitude         *float64 `json:"latitude"`
     Longitude        *float64 `json:"longitude"`
 }
 
+
 func migrateDatabase(db *gorm.DB) {
     db.AutoMigrate(&Scooter{})
-    
-    // Create constraint for status values -- update: doing in validateScooter
-    // db.Exec("ALTER TABLE scooters ADD CONSTRAINT check_status CHECK (status IN ('Available', 'In Use', 'Under Repair'));")
-
 }
 
 func (s *Scooter) ValidateScooter() error {
@@ -67,12 +67,38 @@ func (s *Scooter) ValidateScooter() error {
         return fmt.Errorf("field 'status' cannot be empty")
     }
 
+    if s.State == nil {
+        return fmt.Errorf("field 'state' cannot be empty")
+    }
+
+    if s.ValidateScooterState() == false {
+        return fmt.Errorf("Field 'state' must be one of %s", ScooterStates)
+    }
+
+    if s.ValidateScooterStatus() == false {
+        return fmt.Errorf("Field 'status' must be one of %s", ScooterStatus)
+    }
+
 	scooterExists := Scooter{}
 	if err := DB.Where("id = ?", s.ID).First(&scooterExists).Error; err == nil {
         // A scooter with the same id already exists, respond with an error
-        return fmt.Errorf("A user with this ID already exists")
+        return fmt.Errorf("A scooter with this ID already exists")
     }
     return nil
+}
+
+func (s *Scooter) ValidateScooterState() bool {
+    return util.StringInSlice(
+        *s.State,
+        ScooterStates,
+    )
+}
+
+func (s *Scooter) ValidateScooterStatus() bool {
+    return util.StringInSlice(
+        *s.Status,
+        ScooterStatus,
+    )
 }
 
 func (s *Scooter) ValidateLocationChange(newLocation *Location) error {

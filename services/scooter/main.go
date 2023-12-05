@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 
 	"scooter/internal/model"
 	"scooter/internal/server"
@@ -15,6 +16,12 @@ import (
 
 // função principal
 func main() {
+
+	if os.Getenv("DEPLYMENT") != "PROD" {
+		if err := godotenv.Load(); err != nil {
+			log.Fatalf("Error loading .env file: %v", err)
+		}
+	}
 
 	dbConfig := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",

@@ -5,10 +5,11 @@ import (
 	"github.com/gorilla/mux"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"scooter/internal/processors"
 	"scooter/internal/model"
-	"strconv"
+	"scooter/internal/util"
 )
 
 
@@ -122,45 +123,43 @@ func DeleteScooter(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetNearScooters(w http.ResponseWriter, r *http.Request) {
-    vars := mux.Vars(r)
-    latitude := vars["latitude"]
-    longitude := vars["longitude"]
+    queryParams := r.URL.Query()
+    latitudeStr := queryParams.Get("latitude")
+    longitudeStr := queryParams.Get("longitude")
 
-    // Parse the latitude and longitude from the request into float64 values
-    lat, err := strconv.ParseFloat(latitude, 64)
+    lat, err := strconv.ParseFloat(latitudeStr, 64)
     if err != nil {
         processors.RespondError(w, http.StatusBadRequest, "Invalid latitude")
         return
     }
 
-    lon, err := strconv.ParseFloat(longitude, 64)
+    lon, err := strconv.ParseFloat(longitudeStr, 64)
     if err != nil {
         processors.RespondError(w, http.StatusBadRequest, "Invalid longitude")
         return
     }
 
-    // Define a radius for the proximity search (adjust this as needed)
-    // In this example, we assume a radius of 1 degree
-    radius := 0.009
+    // Define the radius in kilometers (e.g., 1 kilometer)
+    radiusKm := 1.0
 
-    // Perform a spatial query to find scooters within the specified radius
+    // Calculate the latitude and longitude range using the CalculateRange function
+    latitudeMin, latitudeMax, longitudeMin, longitudeMax := util.CalculateLocationMinMaxRange(lat, lon, radiusKm)
+
     var nearScooters []model.Scooter
+
+    // Execute the GORM query to find available scooters within the specified range
     result := model.DB.Where(
-        "ST_DWithin(location, ST_MakePoint(?, ?)::geography, ?)",
-        lon, lat, radius,
-    ).Find(&nearScooters)
+		`latitude BETWEEN ? AND ? AND longitude BETWEEN ? AND ?
+		AND status = 'AVAILABLE'
+		AND state = 'ON'`,
+		latitudeMin, latitudeMax, longitudeMin, longitudeMax,
+	).Find(&nearScooters)
 
     if result.Error != nil {
         processors.RespondError(w, http.StatusInternalServerError, result.Error.Error())
         return
     }
 
-    // Serialize the near scooters to a list of Location structs
-    locations := make([]model.Location, len(nearScooters))
-    for i, scooter := range nearScooters {
-        locations[i] = model.SerializeScooterToLocation(&scooter)
-    }
-
-    // Respond with the list of near scooters' locations in JSON format
-    processors.RespondJSON(w, http.StatusOK, locations)
+    // Respond with the list of near available scooters in JSON format
+    processors.RespondJSON(w, http.StatusOK, nearScooters)
 }
