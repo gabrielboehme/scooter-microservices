@@ -20,12 +20,12 @@ func LockScooter(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *scooter.Status == "AVAILABLE" {
+	if *scooter.Status == "IN_USE" {
 		processors.RespondSuccess(w, http.StatusOK, "Scooter locked")
 		fmt.Println("\nScooter LOCKED")
 		return
 	}
-	processors.RespondError(w, http.StatusBadRequest, "\nScooter must be available to lock it.")
+	processors.RespondError(w, http.StatusBadRequest, "\nScooter must be in_use to lock it.")
 }
 
 func UnlockScooter(w http.ResponseWriter, r *http.Request) {
@@ -38,10 +38,10 @@ func UnlockScooter(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *scooter.Status == "IN_USE" {
+	if *scooter.Status == "AVAILABLE" {
 		processors.RespondSuccess(w, http.StatusOK, "Scooter unlocked")
 		fmt.Println("\nScooter UNLOCKED")
 		return
 	}
-	processors.RespondError(w, http.StatusBadRequest, "\nScooter must be in use to lock it.")
+	processors.RespondError(w, http.StatusBadRequest, "\nScooter must be available to unlock it.")
 }

@@ -21,7 +21,7 @@ func StartScooterRent(w http.ResponseWriter, r *http.Request) {
 		processors.RespondError(w, http.StatusInternalServerError, "Internal server error")
 		return
 	}
-	if err := external.LockScooterOr404(scooterSerialNumber, w, r); err != nil {
+	if err := external.UnlockScooterOr404(scooterSerialNumber, w, r); err != nil {
 		return
 	}
 	if err := external.UpdateScooterStatus(scooterSerialNumber, "IN_USE"); err != nil {
@@ -47,12 +47,17 @@ func FinishScooterRent(w http.ResponseWriter, r *http.Request) {
 	scooterSerialNumber := vars["scooter"]
 	rent := model.GetInUseRentOr404(scooterSerialNumber, w, r)
 	
-	if err := external.UnlockScooterOr404(scooterSerialNumber, w, r); err != nil {
+	if err := external.LockScooterOr404(scooterSerialNumber, w, r); err != nil {
 		return
 	}
 
 	if err := external.UpdateScooterStatus(scooterSerialNumber, "AVAILABLE"); err != nil {
 		processors.RespondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	// Hardcoded card number
+	if err := external.PayScooterRent(rent.ID.String(), "123456789", w, r); err != nil {
+		fmt.Printf("Error: %s", err.Error())
 		return
 	}
 	

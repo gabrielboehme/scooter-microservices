@@ -94,6 +94,24 @@ services:
       depends_on:
         - scooterdb
   
+  payments-app:
+      environment:
+        - DB_HOST=scooterdb
+        - DB_PORT=5432
+        - DB_USER=admin
+        - DB_PWD=scooteradmin
+        - DB_NAME=scooterdb
+        - DB_SSL=disable
+        - APP_PORT=8000
+        - DEPLOYMENT=PROD
+      build:
+        context: ./services/payments          # Use the current directory as the build context
+        dockerfile: Dockerfile  # Dockerfile for building the Go application
+      networks:
+        - scooter-net
+      depends_on:
+        - scooterdb
+
   scooterdb:
     image: postgres:latest
     environment:

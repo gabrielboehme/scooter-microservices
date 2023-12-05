@@ -32,11 +32,11 @@ func LockScooterOr404(scooterSerialNumber string, w http.ResponseWriter, r *http
 	var response AccessControlResponse 
 	decoder := json.NewDecoder(resp.Body)
 	if err := decoder.Decode(&response); err != nil {
-		fmt.Println("Error:", err)
+		fmt.Println("\nError:", err)
 		return errors.New("Internal server error decoding")
 	}
 	if response.Error != nil {
-		fmt.Printf("Error: %s", *response.Error)
+		fmt.Printf("\nError: %s", *response.Error)
 		processors.RespondError(w, http.StatusBadRequest, "Failed to lock scooter. Try later")
 		return errors.New(*response.Error)
 	}
@@ -53,14 +53,14 @@ func UnlockScooterOr404(scooterSerialNumber string, w http.ResponseWriter, r *ht
 
 	resp, err := http.Post(scooterEP, "application/json", strings.NewReader(""))
 	if err != nil {
-		fmt.Println("Error: ", err)
+		fmt.Println("\nError: ", err)
 		return err
 	}
 
 	var response AccessControlResponse 
 	decoder := json.NewDecoder(resp.Body)
 	if err := decoder.Decode(&response); err != nil {
-		fmt.Println("Error:", err)
+		fmt.Println("\nError:", err)
 		return errors.New("Internal server error decoding")
 	}
 
