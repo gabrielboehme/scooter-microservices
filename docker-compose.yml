@@ -1,0 +1,51 @@
+version: '3'
+services:
+  users-app:
+    build:
+      context: ./services/users          # Use the current directory as the build context
+      dockerfile: Dockerfile  # Dockerfile for building the Go application
+    env_file:
+      - ./services/users/.env
+    ports:
+      - "3000:8000"        # Map host port to container port
+    networks:
+      - skooter-net
+    depends_on:
+      - skooterdb
+
+  skooter-app:
+    build:
+      context: ./services/skooter          # Use the current directory as the build context
+      dockerfile: Dockerfile  # Dockerfile for building the Go application
+    env_file:
+      - ./services/skooter/.env
+    ports:
+      - "3001:8000"        # Map host port to container port
+    networks:
+      - skooter-net
+    depends_on:
+      - skooterdb
+
+  skooterdb:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: skooteradmin
+      POSTGRES_DB: skooterdb
+    ports:
+      - "5432:5432"        # Map host port to container port
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h db -p 5432 -U myuser"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - skooter-net
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+
+networks:
+  skooter-net:
+
+volumes:
+  pg-data:  # Define a named volume for PostgreSQL data
