@@ -7,6 +7,7 @@ import (
 )
 
 func RegisterRoutes(router *mux.Router) {
+    router.HandleFunc("/scooter/nearme", api.GetNearScooters).Methods("GET")
     // Routes with path variables
     router.HandleFunc("/scooter/{serial_number}", api.GetScooter).Methods("GET")
     router.HandleFunc("/scooter/{serial_number}", api.UpdateScooter).Methods("PATCH")
@@ -21,6 +22,5 @@ func RegisterRoutes(router *mux.Router) {
     // Ensure that they don't overlap with other routes.
     
     // Other routes
-    router.HandleFunc("/scooter/nearme", api.GetNearScooters).Methods("GET")
     router.HandleFunc("/scooter", api.CreateScooter).Methods("POST")
 }

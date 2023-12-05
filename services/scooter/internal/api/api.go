@@ -157,7 +157,7 @@ func GetNearScooters(w http.ResponseWriter, r *http.Request) {
     }
 
     // Define the radius in kilometers (e.g., 1 kilometer)
-    radiusKm := 1.0
+    radiusKm := 5.0
 
     // Calculate the latitude and longitude range using the CalculateRange function
     latitudeMin, latitudeMax, longitudeMin, longitudeMax := util.CalculateLocationMinMaxRange(lat, lon, radiusKm)
