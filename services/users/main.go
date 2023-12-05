@@ -7,19 +7,14 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/joho/godotenv"
 
 	"scooter/users/internal/model"
 	"scooter/users/internal/server"
+	"scooter/users/internal/util"
 )
 
 // função principal
 func main() {
-	
-	// Load env vars
-	if err := godotenv.Load(); err != nil {
-		fmt.Println("Error loading .env file")
-	}
 
 	dbConfig := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
@@ -39,6 +34,9 @@ func main() {
 
 	// Create the router
 	router := mux.NewRouter()
+
+	// Use logging middleware
+	router.Use(util.LoggingMiddleware)
 
 	// Register the routes
 	server.RegisterRoutes(router)
