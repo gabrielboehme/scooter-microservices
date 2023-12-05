@@ -1,32 +1,49 @@
 package main
 
 import (
-	// "database/sql"
+	"fmt"
+	"log"
+	"os"
+	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 
-	// "scooter/users/internal/model"
+	"scooter/users/internal/model"
 	"scooter/users/internal/server"
-	// "scooter/users/internal/middleware"
 )
 
 // função principal
 func main() {
-	// db, err := sql.Open("postgresql", "connection_string")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer db.Close()
+	
+	// Load env vars
+	if err := godotenv.Load(); err != nil {
+		fmt.Println("Error loading .env file")
+	}
 
-	// Create a database object using your database package
-	// databaseObj := model.NewUserDB(db)
+	dbConfig := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PWD"),
+		os.Getenv("DB_NAME"),
+		os.Getenv("DB_SSL"),
+	)
+
+	// Create db conn
+	err := model.InitDB(dbConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Create the router
 	router := mux.NewRouter()
 
 	// Register the routes
-	server.RegisterRoutes(router, 3000)
+	server.RegisterRoutes(router)
+	port := os.Getenv("APP_PORT")
+	fmt.Println(fmt.Sprintf("Started server at: :%s", port))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s",port ), router))
 
-	// Apply the dbMiddleware to all route handlers
-	// router.Use(middleware.dbMiddleware(databaseObj))
 }

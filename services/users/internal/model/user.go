@@ -1,84 +1,65 @@
 package model
 
 import (
-	"database/sql"
+	"gorm.io/gorm"
+	"gorm.io/driver/postgres"
+	"time"
+	"net/http"
+	"fmt"
 
-	"github.com/google/uuid"
+	_ "github.com/lib/pq"
+	"scooter/users/internal/processors"
 )
 
 type User struct {
-	db      *sql.DB
-	ID      string `json:"id,omitempty"`
-	Name    string `json:"name,omitempty"`
-	CPF     string `json:"cpf,omitempty"`
-	Email   string `json:"email,omitempty"`
-	Celular string `json:"celular,omitempty"`
+	gorm.Model
+	ID          uint `gorm:"unique;not null" json:"id"`
+	Nome        *string `gorm:"not null" json:"nome"`
+	CPF         *string `gorm:"unique;not null" json:"cpf"`
+	Email       *string `gorm:"unique;not null" json:"email"`
+	Celular 	*string `gorm:"not null" json:"celular"`
+	CreatedAt   time.Time
+  	UpdatedAt   time.Time
+  }
+
+
+  func (u *User) ValidateUser() error {
+    if u.Nome == nil {
+        return fmt.Errorf("field 'nome' cannot be empty")
+    }
+    if u.CPF == nil {
+        return fmt.Errorf("field 'cpf' cannot be empty")
+    }
+    if u.Email == nil {
+        return fmt.Errorf("field 'email' cannot be empty")
+    }
+    if u.Celular == nil {
+        return fmt.Errorf("field 'celular' cannot be empty")
+    }
+    return nil
 }
 
-func NewUserDB(db *sql.DB) *User {
-	return &User{db: db}
+
+var DB *gorm.DB
+
+func InitDB(dataSourceName string) error {
+    var err error
+
+    DB, err = gorm.Open(postgres.Open(dataSourceName), &gorm.Config{})
+    if err != nil {
+        return err
+    }
+
+	DB.AutoMigrate(&User{})
+
+    return nil
 }
 
-func (c *User) Create(name string, cpf string, email string, celular string) (*User, error) {
-	id := uuid.New().String()
-	_, err := c.db.Exec(
-		"INSERT INTO users (id, name, cpf, email, celular) VALUES ($1, $2, $3, $4, $5)",
-		id, name, cpf, email, celular,
-	)
-	if err != nil {
-		return nil, err
+func GetUserOr404(cpf string, w http.ResponseWriter, r *http.Request) *User {
+	user := User{}
+	if err := DB.First(&user, User{CPF: &cpf}).Error; err != nil {
+		processors.RespondError(w, http.StatusNotFound, err.Error())
+		return nil
 	}
-	return &User{
-		ID:      id,
-		Name:    name,
-		CPF:     cpf,
-		Email:   email,
-		Celular: celular,
-	}, nil
-}
-
-func (c *User) FindAll() ([]User, error) {
-	rows, err := c.db.Query("SELECT id, name, cpf, email, celular FROM users")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	users := []User{}
-	for rows.Next() {
-		var id, name, cpf, email, celular string
-		if err := rows.Scan(&id, &name, &cpf, &email, &celular); err != nil {
-			return nil, err
-		}
-		users = append(users, User{ID: id, Name: name, CPF: cpf, Email: email, Celular: celular})
-	}
-	return users, nil
-}
-
-func (c *User) Find(id string) (User, error) {
-	var name, cpf, email, celular string
-	err := c.db.QueryRow(
-		"SELECT name, cpf, email, celular FROM users WHERE id = $1",
-		id,
-	).Scan(
-		&name, &cpf, &email, &celular,
-	)
-	if err != nil {
-		return User{}, err
-	}
-	return User{ID: id, Name: name, CPF: cpf, Email: email, Celular: celular}, nil
-}
-
-func (c *User) Update(name string, email string, celular string) (*User, error) {
-	_, err := c.db.Exec(
-		"UPDATE users SET name = $1, email = $2, celular $3",
-		name, email, celular,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return &User{
-		Name:    name,
-		Email:   email,
-		Celular: celular,
-	}, nil
+	return &user
 }
