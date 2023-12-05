@@ -1,7 +1,11 @@
-# Scooter Microservices Gateway
+# Scooter Microservices Gateway INE5670
 
 This is a Go project for mobile and emmbeded systems class at Federal College of Santa Catarina.
 Consists in a API gateway with multiple microservices behind, used to control scooters, as in a shared scooter app.
+
+## API Gateway
+
+It's a simple Go server, acting just as a proxy for the microservices routing the requests based on path.
 
 ## Microservices:
 
@@ -16,3 +20,4 @@ Consists in a API gateway with multiple microservices behind, used to control sc
     -  Rent a scooter
     -  Finish scooter rent
 4. Payment: Payment transactions for billing scooter usage.
+
