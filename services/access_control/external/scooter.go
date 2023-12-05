@@ -9,7 +9,7 @@ import (
 	"bytes"
 	"encoding/json"
 
-	"rents/internal/processors"
+	"access/internal/processors"
 )
 
 var scooterServiceUrl string = "http://scooter-app:8000/scooter"
@@ -19,6 +19,7 @@ type Scooter struct {
 	SerialNumber  *string `json:"serial_number"`
 	Status        *string `json:"status"`
 	State         *string `json:"state"`
+	Error         string `json:"error"`
 }
 
 func GetScooterOr404(scooterSerialNumber string, w http.ResponseWriter, r *http.Request) *Scooter {

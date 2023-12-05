@@ -21,6 +21,7 @@ var services = []Service{
 	{Name: "users", ProxyURL: "http://user-app:8000"},
 	{Name: "scooters", ProxyURL: "http://scooter-app:8000"},
 	{Name: "rents", ProxyURL: "http://rents-app:8000"},
+	{Name: "access", ProxyURL: "http://access_control-app:8000"},
 	// Add more services as needed
 }
 
