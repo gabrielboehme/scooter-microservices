@@ -36,7 +36,7 @@ func main() {
 		r.PathPrefix("/" + service.Name).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			// Extract the service name
 			parts := strings.SplitN(req.URL.Path, "/", 3)
-			fmt.Println("Value of parts[2]:", parts[2])
+			// fmt.Println("Value of parts[2]:", parts[2])
 			if len(parts) < 2 {
 				http.Error(w, "Not Found", http.StatusNotFound)
 				return

@@ -8,6 +8,6 @@ import (
 
 func RegisterRoutes(router *mux.Router) {
 
-	router.HandleFunc("/rent/{scooter}", api.RentScooter).Methods("POST")
+	router.HandleFunc("/rent/{scooter}", api.StartScooterRent).Methods("POST")
 	router.HandleFunc("/finish-rent/{scooter}", api.FinishScooterRent).Methods("POST")
 }

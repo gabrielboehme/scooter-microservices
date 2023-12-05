@@ -2,7 +2,8 @@ package external
 
 import (
 	// "os"
-	"io/ioutil"
+	// "io/ioutil"
+	"errors"
 	"fmt"
 	"net/http"
 	"bytes"
@@ -18,6 +19,7 @@ type Scooter struct {
 	SerialNumber  *string `json:"serial_number"`
 	Status        *string `json:"status"`
 	State         *string `json:"state"`
+	Error         string `json:"error"`
 }
 
 func GetScooterOr404(scooterSerialNumber string, w http.ResponseWriter, r *http.Request) *Scooter {
@@ -57,7 +59,7 @@ func UpdateScooterStatus(scooterSerialNumber string, status string) error {
 
 	req, err := http.NewRequest("PATCH", scooterEP, bytes.NewBuffer(requestBody))
 	if err != nil {
-        return fmt.Errorf("Scooter not found with serial number %s", scooterSerialNumber)
+        return fmt.Errorf("Internal server error")
     }
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -66,22 +68,30 @@ func UpdateScooterStatus(scooterSerialNumber string, status string) error {
 		return nil
 	}
 
-	fmt.Println("Status Code:", resp.Status)
-
-	// Read and print the response body
-	responseBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		// Handle the error
-		fmt.Println("Error reading response body:", err)
-		return nil
+	// Checks if scooter is not in use
+	var response struct {
+		Error string `json:"error"`
 	}
-	fmt.Println("Response Body:", string(responseBody))
 	
-	if err != nil {
-		return fmt.Errorf("Internal server error")
+	decoder := json.NewDecoder(resp.Body)
+	if err := decoder.Decode(&response); err != nil {
+		fmt.Println("Error:", err)
+		return errors.New("Internal server error")
 	}
+	if response.Error == "scooter_already_in_use" {
+		return errors.New("scooter_already_in_use")
+	} 
+	if response.Error == "scooter_already_available" {
+		return errors.New("scooter_not_rented")
+	}
+	if response.Error == "scooter_out_of_order" {
+		return errors.New("scooter_out_of_order")
+	} 
+
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Scooter not found with serial number %s", scooterSerialNumber)
+		fmt.Printf("Error in response: %s", response)
+		fmt.Printf("Error in response: %d", resp.StatusCode)
+		return errors.New("Failed to rent scooter")
 	}
 	return nil
 }

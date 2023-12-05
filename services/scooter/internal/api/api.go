@@ -15,7 +15,6 @@ import (
 
 func GetScooter(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	fmt.Println("Inside Get scooter")
 	serialNumber := vars["serial_number"]
 	scooter := model.GetScooterOr404(serialNumber, w, r)
 	if scooter == nil {

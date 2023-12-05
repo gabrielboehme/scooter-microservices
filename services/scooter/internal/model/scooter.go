@@ -102,19 +102,29 @@ func (s *Scooter) ValidateScooterStatus() bool {
 }
 
 func (s *Scooter) UpdateScooter(scooterUpdated *ScooterUpdate) error {
-    if scooterUpdated.State != nil {
-        if util.StringInSlice(*scooterUpdated.Status, ScooterStatus) {
-            s.Status = scooterUpdated.Status
-        } else {
+    if scooterUpdated.Status != nil {
+        // Check if new status is in valid status 
+        if !util.StringInSlice(*scooterUpdated.Status, ScooterStatus) {
             return fmt.Errorf("Status must be one of %s", ScooterStatus)
         }
+        // Check if it's not already in use
+        if *s.Status == "IN_USE" && *scooterUpdated.Status == "IN_USE"{
+            return fmt.Errorf("scooter_already_in_use")
+        }
+        if *s.Status == "AVAILABLE" && *scooterUpdated.Status == "AVAILABLE"{
+            return fmt.Errorf("scooter_already_available")
+        }
+        if *s.Status == "OUT_OF_ORDER" && *scooterUpdated.Status == "IN_USE" {
+            return fmt.Errorf("scooter_out_of_order")
+        }
+        s.Status = scooterUpdated.Status
     }
     if scooterUpdated.State != nil {
-        if util.StringInSlice(*scooterUpdated.State, ScooterStates) {
-            s.State = scooterUpdated.State
-        } else {
+        // Check if new state is in valid states 
+        if !util.StringInSlice(*scooterUpdated.State, ScooterStates) {
             return fmt.Errorf("State must be one of %s", ScooterStates)
         }
+        s.State = scooterUpdated.State
     }
     return nil
 }
