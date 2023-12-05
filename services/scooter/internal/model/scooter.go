@@ -102,17 +102,19 @@ func (s *Scooter) ValidateScooterStatus() bool {
 }
 
 func (s *Scooter) UpdateScooter(scooterUpdated *ScooterUpdate) error {
-    if scooterUpdated.Status != nil &&
-    util.StringInSlice(*scooterUpdated.Status, ScooterStatus) {
-        s.Status = scooterUpdated.Status
-    } else {
-        return fmt.Errorf("Status must be one of %s", ScooterStatus)
+    if scooterUpdated.State != nil {
+        if util.StringInSlice(*scooterUpdated.Status, ScooterStatus) {
+            s.Status = scooterUpdated.Status
+        } else {
+            return fmt.Errorf("Status must be one of %s", ScooterStatus)
+        }
     }
-    if scooterUpdated.State != nil &&
-    util.StringInSlice(*scooterUpdated.State, ScooterStates) {
-        s.State = scooterUpdated.State
-    } else {
-        return fmt.Errorf("Status must be one of %s", ScooterStates)
+    if scooterUpdated.State != nil {
+        if util.StringInSlice(*scooterUpdated.State, ScooterStates) {
+            s.State = scooterUpdated.State
+        } else {
+            return fmt.Errorf("State must be one of %s", ScooterStates)
+        }
     }
     return nil
 }
