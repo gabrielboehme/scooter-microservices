@@ -17,7 +17,7 @@ import (
 // função principal
 func main() {
 
-	if os.Getenv("DEPLYMENT") != "PROD" {
+	if os.Getenv("DEPLOYMENT") != "PROD" {
 		if err := godotenv.Load(); err != nil {
 			log.Fatalf("Error loading .env file: %v", err)
 		}
