@@ -21,3 +21,8 @@ It's a simple Go server, acting just as a proxy for the microservices routing th
     -  Finish scooter rent
 4. Payment: Payment transactions for billing scooter usage.
 
+## Usage
+1. Simple build the docker containers:
+- docker compose build
+2. Run the containers:
+- docker compose up
