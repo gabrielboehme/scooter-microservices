@@ -28,13 +28,13 @@ func InitDB(dataSourceName string) error {
 
 
 type User struct {
-	ID          uint `gorm:"unique;not null" json:"id"`
+	ID          uint `gorm:"unique;not null; uniqueIndex" json:"id"`
 	Nome        *string `gorm:"not null" json:"nome"`
 	CPF         *string `gorm:"unique;not null" json:"cpf"`
 	Email       *string `gorm:"unique;not null" json:"email"`
 	Celular 	*string `gorm:"not null" json:"celular"`
-	CreatedAt   time.Time
-  	UpdatedAt   time.Time
+	CreatedAt   *time.Time
+  	UpdatedAt   *time.Time
   }
 
 
