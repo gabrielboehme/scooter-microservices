@@ -39,7 +39,7 @@ type Scooter struct {
 	CreatedAt        *time.Time `json:"created_at"`
     UpdatedAt        *time.Time `json:"updated_at"`
 }
-var ScooterStatus = []string{"AVAILABLE", "IN_USE"}
+var ScooterStatus = []string{"AVAILABLE", "IN_USE", "OUT_OF_ORDER"}
 var ScooterStates = []string{"ON", "OFF"}
 
 type Location struct {
