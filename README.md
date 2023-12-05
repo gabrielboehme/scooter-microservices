@@ -23,6 +23,6 @@ It's a simple Go server, acting just as a proxy for the microservices routing th
 
 ## Usage
 1. Simple build the docker containers:
-- docker compose build
-2. Run the containers:
-- docker compose up
+```docker compose build```
+3. Run the containers:
+```docker compose up```
