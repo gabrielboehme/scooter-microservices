@@ -6,9 +6,11 @@ import (
 	"time"
 	"net/http"
 	"fmt"
-    "scooter/scooter/internal/processors"
-
+    "errors"
     "github.com/google/uuid"
+    
+    "scooter/internal/processors"
+    "scooter/internal/util"
 
 )
 
@@ -73,7 +75,7 @@ func (s *Scooter) ValidateScooter() error {
     return nil
 }
 
-func (s *Location) ValidateLocationChange(newLocation Location) error {
+func (s *Scooter) ValidateLocationChange(newLocation *Location) error {
 
     if newLocation.Latitude == nil || newLocation.Longitude == nil {
         return errors.New("Both latitude and longitude must be provided")
@@ -87,17 +89,22 @@ func (s *Location) ValidateLocationChange(newLocation Location) error {
     if *newLocation.Longitude < -180 || *newLocation.Longitude > 180 {
         return errors.New("Longitude is out of bounds")
     }
-    
-    s.Location = newLocation
+
+    s.Latitude = newLocation.Latitude
+    s.Longitude = newLocation.Longitude
 
     return nil
 
 }
 
-
 func GetScooterOr404(serialNumber string, w http.ResponseWriter, r *http.Request) *Scooter {
 	skooter := Scooter{}
-	if err := DB.First(&skooter, Scooter{SerialNumber: &serialNumber}).Error; err != nil {
+    serialNumberUUID, err := util.StringToUUID(serialNumber)
+    if err != nil {
+        processors.RespondError(w, http.StatusNotFound, "serial_number is not a valid UUID.")
+        return nil
+    }
+	if err := DB.First(&skooter, Scooter{SerialNumber: serialNumberUUID}).Error; err != nil {
 		processors.RespondError(w, http.StatusNotFound, err.Error())
 		return nil
 	}

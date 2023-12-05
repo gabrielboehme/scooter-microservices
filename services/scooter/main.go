@@ -9,8 +9,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 
-	"scooter/users/internal/model"
-	"scooter/users/internal/server"
+	"scooter/internal/model"
+	"scooter/internal/server"
 )
 
 // função principal

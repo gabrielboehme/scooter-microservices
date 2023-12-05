@@ -1,9 +1,11 @@
 package model
 
-func SerializeScooterToLocation(scooter model.Scooter) Location {
+
+
+func SerializeScooterToLocation(scooter *Scooter) Location {
     location := Location{
-        Latitude:  scooter.Location.Latitude,
-        Longitude: scooter.Location.Longitude,
+        Latitude:  scooter.Latitude,
+        Longitude: scooter.Longitude,
     }
     return location
 }
